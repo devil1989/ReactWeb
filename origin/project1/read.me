@@ -1,0 +1,21 @@
+该文件目录为某个特定项目的根目录
+
+build：解析后的文件（这里的build文件夹里面的文件未压缩，只是转义，dest文件夹里面的各个项目下面的build才是压缩+转义的文件）
+fonts：存放iconfont和字体的文件夹
+webpack.config.base.js:webpack的基础打包方案
+webpack.config.js:默认打包走的是这个js，它里面继承了webpack.config.base.js,打包命令是webpack
+webpack.p1.js:特殊的打包方案，这个名字随便取，也是继承自webpack.config.base.js；如果想要用这个打包方案，命令是webpack --config webpack.p1.js
+
+
+
+//React使用说明
+	react:主要用到的react和react-dom，最基础的东西	
+	redux：用于管理react中的state，
+	webpack：用于模块化打包，包括jsx和es6转化为es5（本质是babel工具把jsx和es6翻译成了es5）
+	react route：用于react的单页面应用程序的路由设置（暂时不用）
+
+
+
+
+//react详解：
+state：保存组件的状态值，state具有唯一性，即一个state一定能render出对应的一个组件状态，永远不要在克隆 state 前修改它

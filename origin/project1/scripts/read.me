@@ -1,0 +1,159 @@
+
+//redux详解(用于管理state):redux是用store.dispatch(action)来执行对应的action，从而调用对应的reducer来更新state，改变UI；如果不用redux，那么需要通过this.setState方法来修改state，调用该方法后，react会自动根据state来改变组件的UI
+
+action: 携带了数据的普通js对象，action creator返回的值是这个action类型的对象。然后通过store.dispatch(action creator())进行分发//store.dispatch是同步的
+
+reducer:是个state的生成函数，通过旧的state，和对应的action行为，返回一个新的state
+
+		//重点来了，什么时候用reducer？，reducer不需要额外自己调用，只要绑定对应的state和action，
+		//store在调用dispache(action)的时候，会自动执行reduce(state,action)//action是dispache中传入的action，state是自己当前的state，可以通过store.getState()获得
+
+		
+
+store:中心，获取store，生成新store，store监听等
+		getState：获取store的state
+		subscribe：监听store
+		dispache：更新store
+			state只能通过dispatch(action)来执行更新，更新逻辑由reducer来执行
+					action是一个对象，用于描述一个行为，通常在dispache中，用的是action生成函数，例如dispache（todoAction()）
+					todoAction：是返回action的一个函数而已，传入额外的属性，返回对应的action对象（该action对象可能是一个方法，也可能是一个对象）
+
+middleware:发送action和action到达reducer之间的第三方扩展（为了处理异步问题而引入的）
+
+
+
+流程：store.dispatch(action) --> reducer(state, action) --> final state --> 根据最新的state来更新组件UI
+	//redux中，store和action之间的关联是store.dispatch(action)绑定的
+	//redux中，store和reducer之间的关联是在store创建的时候就绑定了的
+
+	执行store.dispatch(actionCreator())后，会自动执行reducer，
+	reduce包含2个参数，当前的state和对应的action，会根据当前的state和对应的action，返回最新的state，这里面具体怎么实现的逻辑需要自己写
+
+	四要素：component,action,reducer,state
+		component触发事件，事件中会执行store.dispatch(action)，然后reducer会执行这个action，生成新的state，然后根据新的state来重绘component
+
+
+备注：全局只有一个store，每个控件对应store中的某个属性，reducer需要和store的属性绑定来更新store中对应的属性，如果reducer绑定了多个action，那么根据action的不同，就会产生不容的state，
+	  reducer有多个，一般会用combineReducers来合成一个综合的reducer，这个综合的reducer就是上面说的绑定多个action（即能够修改多个store中的属性）的reducer，reduce合成//一般都是自己写一个集成的reduce函数
+
+
+
+
+//拓展属性
+	import { createStore, applyMiddleware,bindActionCreators } from 'redux'
+	import { connect,Provider } from 'react-redux'
+	import thunk from 'redux-thunk'
+
+	createStore(reducer, []):生成store，第二个参数可选，是默认的store
+	applyMiddleware:来自redux可以包装 store 的 dispatch()【该方法可以生成对应的store】
+	thunk：让dispatch接受function作为参数，而不仅仅只能接受action对象;这样做是为了处理dispatch的异步请求，dispatch(action)是同步的
+	Provider:组件最外层，管理store中的state的状态
+	connect:把state的counter值绑定到props上，把action创建函数绑定到props上（用到了bindActionCreators），返回绑定后的组件
+	bindActionCreators:把action创建函数绑定到props上（用到了bindActionCreators）
+
+	dispatch的异步问题（支持了ajax）：通过applyMiddleware，thunk解决了
+	组价嵌套调用的时候，state更改
+
+
+
+this.props和state区别：
+	state:组件状态树，能决定组件的UI展示，state变化是会更新DOM（getInitialState:获取初始的默认state）
+	props：属性传递，是父组件传递给子组件的属性，单向的（getDefaultProps:获取初始的默认props）；this.props.children获取所有子组件
+
+	父元素的props修改的时候，如果子元素用了父元素的props的某些属性，redux会把props映射到对应的state，然后通过state来修改对应的UI，因为父元素和子元素
+	都用到了对应的那根props，所以映射的时候后获得了对应的state的某个属性值，这样就做到了修改父元素props，能改变父元素和子元素的UI。
+
+	props 就是组件的属性，由外部通过 JSX 属性传入设置，一旦初始设置完成，就可以认为 this.props 是不可更改的，
+	所以不要轻易更改设置 this.props 里面的值（虽然对于一个 JS 对象你可以做任何事）。state 是组件的当前状态，
+	可以把组件简单看成一个“状态机”，根据状态 state 呈现不同的 UI 展示。一旦状态（数据）更改，
+	组件就会自动调用 render 重新渲染 UI，这个更改的动作会通过 this.setState 方法来触发。
+
+
+
+
+
+
+
+
+
+/*******************************基础案例 start *******************************/
+
+其实，redux的核心概念就是store、action、reducer，从调用关系来看如下所示
+store.dispatch(action) --> reducer(state, action) --> final state
+可以先看下面的极简例子有个感性的认识，下面会对三者的关系进行简单介绍
+// reducer方法, 传入的参数有两个
+// state: 当前的state
+// action: 当前触发的行为, {type: 'xx'}
+// 返回值: 新的state
+var reducer = function(state, action){
+    switch (action.type) {
+        case 'add_todo':
+            return state.concat(action.text);
+        default:
+            return state;
+    }
+};
+
+// 创建store, 传入两个参数
+// 参数1: reducer 用来修改state
+// 参数2(可选): [], 默认的state值,如果不传, 则为undefined
+var store = redux.createStore(reducer, []);
+
+// 通过 store.getState() 可以获取当前store的状态(state)
+// 默认的值是 createStore 传入的第二个参数
+console.log('state is: ' + store.getState());  // state is:
+
+// 通过 store.dispatch(action) 来达到修改 state 的目的
+// 注意: 在redux里,唯一能够修改state的方法,就是通过 store.dispatch(action)
+store.dispatch({type: 'add_todo', text: '读书'});
+// 打印出修改后的state
+console.log('state is: ' + store.getState());  // state is: 读书
+
+store.dispatch({type: 'add_todo', text: '写作'});
+console.log('state is: ' + store.getState());  // state is: 读书,写作
+store、reducer、action关联
+可以结合上面的代码来看下面几段解释
+store：对flux有了解的同学应该有所了解，store在这里代表的是数据模型，内部维护了一个state变量，用例描述应用的状态。store有两个核心方法，分别是getState、dispatch。前者用来获取store的状态（state），后者用来修改store的状态。
+// 创建store, 传入两个参数
+// 参数1: reducer 用来修改state
+// 参数2(可选): [], 默认的state值,如果不传, 则为undefined
+var store = redux.createStore(reducer, []);
+
+// 通过 store.getState() 可以获取当前store的状态(state)
+// 默认的值是 createStore 传入的第二个参数
+console.log('state is: ' + store.getState());  // state is:
+
+// 通过 store.dispatch(action) 来达到修改 state 的目的
+// 注意: 在redux里,唯一能够修改state的方法,就是通过 store.dispatch(action)
+store.dispatch({type: 'add_todo', text: '读书'});
+action：对行为（如用户行为）的抽象，在redux里是一个普通的js对象。redux对action的约定比较弱，除了一点，action必须有一个type字段来标识这个行为的类型。所以，下面的都是合法的action
+{type:'add_todo', text:'读书'}
+{type:'add_todo', text:'写作'}
+{type:'add_todo', text:'睡觉', time:'晚上'}
+reducer：一个普通的函数，用来修改store的状态。传入两个参数 state、action。其中，state为当前的状态（可通过store.getState()获得），而action为当前触发的行为（通过store.dispatch(action)调用触发）。reducer(state, action) 返回的值，就是store最新的state值。
+// reducer方法, 传入的参数有两个
+// state: 当前的state
+// action: 当前触发的行为, {type: 'xx'}
+// 返回值: 新的state
+var reducer = function(state, action){
+    switch (action.type) {
+        case 'add_todo':
+            return state.concat(action.text);
+        default:
+            return state;
+    }
+};
+关于actionAreator
+看到xxCreator总能让人联想到工厂模式，没错，在redux里，actionAreator其实就是action的工厂方法，可以参考下面例子。
+actionCreator(args) => action
+var addTodo = function(text){
+    return {
+        type: 'add_todo',
+        text: text
+    };
+};
+
+addTodo('睡觉');  // 返回：{type: 'add_todo', text: '睡觉'}
+在redux里，actionAreator并非是必需的。不过建议用actionAreator代替普通action对象的直接传递。除了能够减少代码量，还可以大大提高代码的可维护性。想象下面的场景
+
+/*******************************基础案例 end*******************************/
