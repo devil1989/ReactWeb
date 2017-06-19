@@ -25,7 +25,7 @@ const DetailPage = React.createClass({
                             {bodyResult}
                             { (stateTree.Adlink && stateTree.isHongqiao) &&
                                 <div className="hongqiao" onClick={this.goHongqiao}>
-                                    <img src="//pic.c-ctrip.com/h5/flight/hqbanner.png" />
+                                    <img src="//pic.c-jeffreytrip.com/h5/flight/hqbanner.png" />
                                 </div>
                             }
                             <FioBoard key="G" fioData={stateTree.fioData}/>
