@@ -30,7 +30,7 @@ middleware:发送action和action到达reducer之间的第三方扩展（为了�
 	reduce包含2个参数，当前的state和对应的action，会根据当前的state和对应的action，返回最新的state，这里面具体怎么实现的逻辑需要自己写
 
 	四要素：component,action,reducer,state
-		component触发事件，事件中会执行store.dispatch(action)，然后reducer会执行这个action，生成新的state，然后根据新的state来重绘component
+		component(组件)触发事件，事件中会执行store.dispatch(action)，然后reducer会执行这个action，生成新的state，然后根据新的state来重绘component
 
 
 备注：全局只有一个store，每个控件对应store中的某个属性，reducer需要和store的属性绑定来更新store中对应的属性，如果reducer绑定了多个action，那么根据action的不同，就会产生不容的state，
@@ -45,9 +45,11 @@ middleware:发送action和action到达reducer之间的第三方扩展（为了�
 	import thunk from 'redux-thunk'
 
 	createStore(reducer, []):生成store，第二个参数可选，是默认的store
-	applyMiddleware:来自redux可以包装 store 的 dispatch()【该方法可以生成对应的store】
-	thunk：让dispatch接受function作为参数，而不仅仅只能接受action对象;这样做是为了处理dispatch的异步请求，dispatch(action)是同步的
 	Provider:组件最外层，管理store中的state的状态
+
+	applyMiddleware:来自redux可以包装 store 的 dispatch()【该方法可以生成对应的store】,他和thunk一起使用
+	thunk：让dispatch接受function作为参数，而不仅仅只能接受action对象;这样做是为了处理dispatch的异步请求，dispatch(action)是同步的
+
 	connect:把state的counter值绑定到props上，把action创建函数绑定到props上（用到了bindActionCreators），返回绑定后的组件
 	bindActionCreators:把action创建函数绑定到props上（用到了bindActionCreators）
 
